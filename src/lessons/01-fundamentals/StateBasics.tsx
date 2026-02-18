@@ -1,4 +1,45 @@
 import { useState } from 'react'
+import { LessonLayout } from '@components/lesson-layout'
+import type { PlaygroundConfig } from '@components/playground'
+import sourceCode from './StateBasics.tsx?raw'
+
+export const playgroundConfig: PlaygroundConfig = {
+    files: [
+        {
+            name: 'App.tsx',
+            language: 'tsx',
+            code: `import { useState } from 'react'
+
+export default function App() {
+    const [count, setCount] = useState(0)
+    const [name, setName] = useState('')
+
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>Counter: {count}</h2>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                <button onClick={() => setCount(c => c + 1)}>+</button>
+                <button onClick={() => setCount(c => c - 1)}>-</button>
+                <button onClick={() => setCount(0)}>Reset</button>
+            </div>
+
+            <h2>Greeting</h2>
+            <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Type your name..."
+                style={{ padding: 8, fontSize: 14, width: '100%', marginBottom: 8 }}
+            />
+            {name && <p>Hello, <strong>{name}</strong>!</p>}
+        </div>
+    )
+}
+`,
+        },
+    ],
+    entryFile: 'App.tsx',
+    height: 350,
+}
 
 export default function StateBasics() {
     const [count, setCount] = useState(0)
@@ -6,8 +47,8 @@ export default function StateBasics() {
     const [isVisible, setIsVisible] = useState(true)
 
     return (
-        <div>
-            <h1>State Basics</h1>
+        <LessonLayout title="State Basics" playgroundConfig={playgroundConfig} sourceCode={sourceCode}>
+            <div>
             <p>
                 State lets components "remember" information and respond to user interactions. The{' '}
                 <code>useState</code> hook is how we add state to function components.
@@ -127,7 +168,7 @@ const [count, setCount] = useState(0);
                     >
                         {name ? (
                             <p>
-                                Hello, <strong>{name}</strong>! 👋
+                                Hello, <strong>{name}</strong>!
                             </p>
                         ) : (
                             <p style={{ color: 'var(--text-tertiary)' }}>Type your name above...</p>
@@ -217,7 +258,7 @@ const [count, setCount] = useState(0);
                                 borderRadius: 'var(--radius-md)',
                             }}
                         >
-                            <p>🎉 This message is conditionally rendered based on state!</p>
+                            <p>This message is conditionally rendered based on state!</p>
                         </div>
                     )}
                 </div>
@@ -241,7 +282,7 @@ const [count, setCount] = useState(0);
                         marginTop: 'var(--space-4)',
                     }}
                 >
-                    <h3 style={{ color: 'white', marginBottom: 'var(--space-3)' }}>⚙️ How Batching Works</h3>
+                    <h3 style={{ color: 'white', marginBottom: 'var(--space-3)' }}>How Batching Works</h3>
                     <pre style={{ background: 'transparent' }}>
                         <code style={{ color: 'white' }}>{`// Render Count: 0
 
@@ -249,7 +290,7 @@ const handleClick = () => {
   setCount(c => c + 1); // Update queued
   setName('Alice');     // Update queued
   setIsVisible(false);  // Update queued
-  
+
   // React reconciles ALL changes in one go!
   // Component re-renders ONCE with all new values.
 }
@@ -272,6 +313,7 @@ const handleClick = () => {
                     <li>Always use the setter function to update state, never mutate directly</li>
                 </ul>
             </section>
-        </div>
+            </div>
+        </LessonLayout>
     )
 }

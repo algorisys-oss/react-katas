@@ -10,7 +10,7 @@ export const playgroundConfig: PlaygroundConfig = {
     {
       name: 'App.tsx',
       language: 'tsx',
-      code: `import { useState, createElement, useRef, useEffect } from 'react'
+      code: `import { useState, createElement, useRef } from 'react'
 
 function Greeting({ name }: { name: string }) {
     return <h2>Hello, {name}!</h2>
@@ -20,10 +20,19 @@ function RenderCounter({ label }: { label: string }) {
     const count = useRef(0)
     count.current += 1
     return (
-        <div style={{ padding: 8, background: '#f3f4f6', borderRadius: 6, marginBottom: 8 }}>
+        <div style={{ padding: 8, background: '#f3f4f6', color: '#1f2937', borderRadius: 6, marginBottom: 8 }}>
             <strong>{label}</strong> rendered <strong>{count.current}</strong> time(s)
         </div>
     )
+}
+
+// Extract only the meaningful parts of a React element for display
+function describeElement(el) {
+    if (!el || typeof el !== 'object') return String(el)
+    const typeName = typeof el.type === 'function' ? el.type.name || 'Anonymous'
+        : typeof el.type === 'string' ? '"' + el.type + '"'
+        : String(el.type)
+    return JSON.stringify({ type: typeName, props: el.props || {}, key: el.key ?? null }, null, 2)
 }
 
 export default function App() {
@@ -44,16 +53,16 @@ export default function App() {
                 <h3>1. typeof Checks</h3>
                 <p><code>typeof Greeting</code> = <strong>{typeof Greeting}</strong> (it is a function)</p>
                 <p><code>typeof &lt;Greeting /&gt;</code> = <strong>{typeof element}</strong> (it is an object)</p>
-                <pre style={{ background: '#f9fafb', padding: 12, borderRadius: 6 }}>
-{JSON.stringify(element, null, 2)}
+                <pre style={{ padding: 12, borderRadius: 6 }}>
+{describeElement(element)}
                 </pre>
             </section>
 
             <section style={{ marginBottom: 24 }}>
                 <h3>2. createElement Output</h3>
                 <p>JSX and createElement produce the same result:</p>
-                <pre style={{ background: '#f9fafb', padding: 12, borderRadius: 6 }}>
-{JSON.stringify(elementViaCreateElement, null, 2)}
+                <pre style={{ padding: 12, borderRadius: 6 }}>
+{describeElement(elementViaCreateElement)}
                 </pre>
             </section>
 
@@ -136,7 +145,7 @@ function TypeofDemo() {
         <div
           style={{
             padding: 'var(--space-4)',
-            background: 'var(--color-primary-100)',
+            background: 'var(--surface-primary)',
             borderRadius: 'var(--radius-md)',
           }}
         >
@@ -149,7 +158,7 @@ function TypeofDemo() {
         <div
           style={{
             padding: 'var(--space-4)',
-            background: 'var(--color-accent-100)',
+            background: 'var(--surface-accent)',
             borderRadius: 'var(--radius-md)',
           }}
         >
@@ -173,17 +182,15 @@ function CreateElementDemo() {
   const jsxElement = <Greeting name="World" />
   const ceElement = createElement(Greeting, { name: 'World' })
 
-  // Safe serialization that handles symbols
-  const serialize = (obj: unknown): string => {
-    return JSON.stringify(
-      obj,
-      (_key, value) => {
-        if (typeof value === 'symbol') return value.toString()
-        if (typeof value === 'function') return `[Function: ${value.name || 'anonymous'}]`
-        return value
-      },
-      2
-    )
+  // Extract only the meaningful parts of a React element for display
+  const describeElement = (el: unknown): string => {
+    if (!el || typeof el !== 'object') return String(el)
+    const obj = el as Record<string, unknown>
+    const typeName = typeof obj.type === 'function'
+      ? (obj.type as { name?: string }).name || 'Anonymous'
+      : typeof obj.type === 'string' ? `"${obj.type}"`
+      : String(obj.type)
+    return JSON.stringify({ type: typeName, props: obj.props || {}, key: obj.key ?? null }, null, 2)
   }
 
   // Use ceElement to avoid unused variable error
@@ -215,7 +222,7 @@ function CreateElementDemo() {
       <div style={{ marginTop: 'var(--space-4)' }}>
         <h4 style={{ marginBottom: 'var(--space-2)' }}>The resulting element object:</h4>
         <pre style={{ background: 'transparent', fontSize: 'var(--font-size-sm)', overflow: 'auto' }}>
-          <code>{serialize(jsxElement)}</code>
+          <code>{describeElement(jsxElement)}</code>
         </pre>
       </div>
 

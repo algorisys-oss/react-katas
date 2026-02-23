@@ -24,7 +24,7 @@ function ListItem({ item }: { item: Item }) {
     renderCount.current += 1
 
     return (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 8, background: '#f9fafb', borderRadius: 6, marginBottom: 4 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', padding: 8, background: '#f9fafb', color: '#1f2937', borderRadius: 6, marginBottom: 4 }}>
             <span style={{ flex: 1 }}>{item.text}</span>
             <input
                 type="text"
@@ -533,7 +533,7 @@ function ChildRenderDemo() {
       <div
         style={{
           padding: 'var(--space-3)',
-          background: 'var(--color-primary-100)',
+          background: 'var(--surface-primary)',
           borderRadius: 'var(--radius-md)',
           marginBottom: 'var(--space-3)',
         }}
@@ -612,7 +612,7 @@ export default function RenderTimingReconciliation() {
             <div
               style={{
                 padding: 'var(--space-4)',
-                background: 'var(--color-primary-100)',
+                background: 'var(--surface-primary)',
                 borderRadius: 'var(--radius-lg)',
               }}
             >
@@ -630,7 +630,7 @@ setCount(1) // triggers re-render of this component + children`}</code>
             <div
               style={{
                 padding: 'var(--space-4)',
-                background: 'var(--color-accent-100)',
+                background: 'var(--surface-accent)',
                 borderRadius: 'var(--radius-lg)',
               }}
             >

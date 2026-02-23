@@ -191,11 +191,11 @@ const [count, setCount] = useState(0);
                     <div
                         style={{
                             padding: 'var(--space-4)',
-                            background: 'var(--color-primary-100)',
+                            background: 'var(--surface-primary)',
                             borderRadius: 'var(--radius-lg)',
                         }}
                     >
-                        <h3 style={{ color: 'var(--color-primary-700)' }}>State</h3>
+                        <h3 style={{ color: 'var(--on-surface-primary)' }}>State</h3>
                         <ul>
                             <li>Owned by the component</li>
                             <li>Can be changed by the component</li>
@@ -206,11 +206,11 @@ const [count, setCount] = useState(0);
                     <div
                         style={{
                             padding: 'var(--space-4)',
-                            background: 'var(--color-accent-100)',
+                            background: 'var(--surface-accent)',
                             borderRadius: 'var(--radius-lg)',
                         }}
                     >
-                        <h3 style={{ color: 'var(--color-accent-700)' }}>Props</h3>
+                        <h3 style={{ color: 'var(--on-surface-accent)' }}>Props</h3>
                         <ul>
                             <li>Passed from parent</li>
                             <li>Read-only (immutable)</li>

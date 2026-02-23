@@ -25,7 +25,7 @@ function ControlledInput() {
                 placeholder="Type here..."
                 style={{ width: '100%', padding: 8, fontSize: 14, marginBottom: 8, border: '1px solid #d1d5db', borderRadius: 6 }}
             />
-            <div style={{ padding: 8, background: '#f3f4f6', borderRadius: 6 }}>
+            <div style={{ padding: 8, background: '#f3f4f6', color: '#1f2937', borderRadius: 6 }}>
                 <p><strong>Current Value:</strong> {value || '(empty)'}</p>
                 <p style={{ color: '#6b7280', fontSize: 12 }}>Value is controlled by React state -- updates on every keystroke</p>
             </div>
@@ -59,7 +59,7 @@ function UncontrolledInput() {
             >
                 Get Value
             </button>
-            <div style={{ padding: 8, background: '#f3f4f6', borderRadius: 6 }}>
+            <div style={{ padding: 8, background: '#f3f4f6', color: '#1f2937', borderRadius: 6 }}>
                 <p><strong>Submitted Value:</strong> {submittedValue || '(click button to get value)'}</p>
                 <p style={{ color: '#6b7280', fontSize: 12 }}>Value is managed by the DOM, accessed via ref on demand</p>
             </div>
@@ -179,7 +179,7 @@ export default function ControlledUncontrolled() {
             <div
               style={{
                 padding: 'var(--space-4)',
-                background: 'var(--color-primary-100)',
+                background: 'var(--surface-primary)',
                 borderRadius: 'var(--radius-lg)',
               }}
             >
@@ -203,7 +203,7 @@ export default function ControlledUncontrolled() {
             <div
               style={{
                 padding: 'var(--space-4)',
-                background: 'var(--color-accent-100)',
+                background: 'var(--surface-accent)',
                 borderRadius: 'var(--radius-lg)',
               }}
             >

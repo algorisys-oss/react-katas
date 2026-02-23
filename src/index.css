@@ -43,6 +43,9 @@
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
 
+  /* Prevent browser auto-dark-mode from overriding our colors */
+  color-scheme: light;
+
   /* Semantic colors - Light mode */
   --bg-primary: #ffffff;
   --bg-secondary: var(--color-gray-50);
@@ -56,6 +59,12 @@
 
   --border-color: var(--color-gray-200);
   --border-color-hover: var(--color-gray-300);
+
+  /* Theme-aware surfaces for comparison cards, info boxes, etc. */
+  --surface-primary: var(--color-primary-100);
+  --surface-accent: var(--color-accent-100);
+  --on-surface-primary: var(--color-primary-700);
+  --on-surface-accent: var(--color-accent-700);
 
   /* Spacing scale */
   --space-1: 0.25rem;   /* 4px */
@@ -122,6 +131,8 @@
 
 /* Dark mode — controlled via data-theme attribute set by useTheme hook */
 :root[data-theme="dark"] {
+    color-scheme: dark;
+
     --bg-primary: var(--color-gray-900);
     --bg-secondary: var(--color-gray-800);
     --bg-tertiary: var(--color-gray-700);
@@ -134,6 +145,11 @@
 
     --border-color: var(--color-gray-700);
     --border-color-hover: var(--color-gray-600);
+
+    --surface-primary: var(--color-primary-900);
+    --surface-accent: var(--color-accent-900);
+    --on-surface-primary: var(--color-primary-300);
+    --on-surface-accent: var(--color-accent-300);
 
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);

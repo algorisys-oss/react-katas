@@ -1,7 +1,6 @@
 import { LessonLayout } from '@components/lesson-layout'
 import type { PlaygroundConfig } from '@components/playground'
 
-// @ts-ignore
 import sourceCode from './ProfilingDebugging.tsx?raw'
 
 export const playgroundConfig: PlaygroundConfig = {
@@ -93,7 +92,7 @@ export default function App() {
           value={text}
           onChange={e => setText(e.target.value)}
           placeholder="Type something..."
-          style={{ padding: 8, borderRadius: 6, border: '1px solid #cbd5e0', flex: 1 }}
+          style={{ padding: 8, borderRadius: 6, border: '1px solid var(--pg-card-border)', flex: 1 }}
         />
       </div>
 

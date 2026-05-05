@@ -1,15 +1,138 @@
 import { useReducer, useState } from 'react'
 import { LessonLayout } from '@components/lesson-layout'
-import type { PlaygroundConfig } from '@components/playground'
-// @ts-ignore
+import type { PlaygroundVariant } from '@components/playground'
 import sourceCode from './UseReducer.tsx?raw'
 
-export const playgroundConfig: PlaygroundConfig = {
-  files: [
-    {
-      name: 'App.tsx',
-      language: 'tsx',
-      code: `import { useReducer, useState } from 'react'
+export const playgroundVariants: PlaygroundVariant[] = [
+  {
+    id: 'use-states',
+    label: 'Before — many useStates',
+    description:
+      "Five related useStates inside one component. Every action (start fetch, succeed, fail) has to remember to update each one in the right order. Easy to leave a flag inconsistent (e.g. loading=true with a successful payload).",
+    files: [
+      {
+        name: 'App.tsx',
+        language: 'tsx',
+        code: `import { useState } from 'react'
+
+export default function App() {
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [data, setData] = useState<{ name: string } | null>(null)
+    const [retries, setRetries] = useState(0)
+
+    function fetchUser() {
+        setLoading(true)
+        setError(null)
+        setData(null)
+        setTimeout(() => {
+            // Multiple setStates — easy to forget one and end up inconsistent
+            setData({ name: 'Ada Lovelace' })
+            setLoading(false)
+            // Forgot to reset retries? Forgot to clear error on success?
+        }, 600)
+    }
+
+    function fail() {
+        setLoading(true)
+        setError(null)
+        setTimeout(() => {
+            setError('Network error')
+            setLoading(false)
+            setRetries(r => r + 1)
+        }, 600)
+    }
+
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>Five useStates juggling one async flow</h2>
+            <button onClick={fetchUser} disabled={loading} style={{ marginRight: 8 }}>Load</button>
+            <button onClick={fail} disabled={loading}>Fail</button>
+            <p>loading: {String(loading)} · retries: {retries}</p>
+            {error && <p style={{ color: '#ef4444' }}>Error: {error}</p>}
+            {data && <p>Welcome, {data.name}!</p>}
+        </div>
+    )
+}
+`,
+      },
+    ],
+    entryFile: 'App.tsx',
+    height: 280,
+  },
+  {
+    id: 'reducer',
+    label: 'After — useReducer',
+    description:
+      'One reducer that owns the whole state shape. Each dispatch describes an event ("FETCH_START", "FETCH_SUCCESS", "FETCH_ERROR") and the reducer guarantees the resulting state is consistent.',
+    files: [
+      {
+        name: 'App.tsx',
+        language: 'tsx',
+        code: `import { useReducer } from 'react'
+
+type State =
+    | { status: 'idle'; retries: number }
+    | { status: 'loading'; retries: number }
+    | { status: 'success'; data: { name: string }; retries: number }
+    | { status: 'error'; error: string; retries: number }
+
+type Action =
+    | { type: 'FETCH_START' }
+    | { type: 'FETCH_SUCCESS'; data: { name: string } }
+    | { type: 'FETCH_ERROR'; error: string }
+
+function reducer(state: State, action: Action): State {
+    switch (action.type) {
+        case 'FETCH_START':
+            return { status: 'loading', retries: state.retries }
+        case 'FETCH_SUCCESS':
+            return { status: 'success', data: action.data, retries: state.retries }
+        case 'FETCH_ERROR':
+            return { status: 'error', error: action.error, retries: state.retries + 1 }
+    }
+}
+
+export default function App() {
+    const [state, dispatch] = useReducer(reducer, { status: 'idle', retries: 0 })
+
+    function fetchUser() {
+        dispatch({ type: 'FETCH_START' })
+        setTimeout(() => dispatch({ type: 'FETCH_SUCCESS', data: { name: 'Ada Lovelace' } }), 600)
+    }
+
+    function fail() {
+        dispatch({ type: 'FETCH_START' })
+        setTimeout(() => dispatch({ type: 'FETCH_ERROR', error: 'Network error' }), 600)
+    }
+
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>One reducer — impossible to be inconsistent</h2>
+            <button onClick={fetchUser} disabled={state.status === 'loading'} style={{ marginRight: 8 }}>Load</button>
+            <button onClick={fail} disabled={state.status === 'loading'}>Fail</button>
+            <p>status: {state.status} · retries: {state.retries}</p>
+            {state.status === 'error' && <p style={{ color: '#ef4444' }}>Error: {state.error}</p>}
+            {state.status === 'success' && <p>Welcome, {state.data.name}!</p>}
+        </div>
+    )
+}
+`,
+      },
+    ],
+    entryFile: 'App.tsx',
+    height: 280,
+  },
+  {
+    id: 'todos',
+    label: 'Todo reducer',
+    description:
+      'A classic todo-list reducer: ADD, TOGGLE, DELETE, FILTER. Familiar shape from Redux but inside a single component.',
+    files: [
+      {
+        name: 'App.tsx',
+        language: 'tsx',
+        code: `import { useReducer, useState } from 'react'
 
 interface Todo {
   id: number
@@ -61,7 +184,7 @@ export default function App() {
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Add a todo..."
-          style={{ flex: 1, padding: 8, fontSize: 14, border: '1px solid #ccc', borderRadius: 4 }}
+          style={{ flex: 1, padding: 8, fontSize: 14, border: '1px solid var(--pg-card-border)', borderRadius: 4 }}
         />
         <button
           type="submit"
@@ -72,7 +195,7 @@ export default function App() {
       </form>
 
       {todos.length > 0 && (
-        <p style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
+        <p style={{ fontSize: 12, color: 'var(--pg-muted)', marginBottom: 8 }}>
           {completed}/{todos.length} completed
         </p>
       )}
@@ -88,8 +211,8 @@ export default function App() {
                 display: 'flex',
                 alignItems: 'center',
                 padding: 8,
-                background: '#f9fafb',
-                color: '#1f2937',
+                background: 'var(--pg-card)',
+                color: 'var(--pg-card-text)',
                 borderRadius: 4,
                 marginBottom: 4,
               }}
@@ -129,15 +252,16 @@ export default function App() {
   )
 }
 `,
-    },
-  ],
-  entryFile: 'App.tsx',
-  height: 450,
-}
+      },
+    ],
+    entryFile: 'App.tsx',
+    height: 450,
+  },
+]
 
 export default function UseReducer() {
   return (
-    <LessonLayout title="useReducer Hook" playgroundConfig={playgroundConfig} sourceCode={sourceCode}>
+    <LessonLayout title="useReducer Hook" playgroundVariants={playgroundVariants} sourceCode={sourceCode}>
       <p>
         <code>useReducer</code> is an alternative to <code>useState</code> for managing complex
         state logic. It's especially useful when state updates depend on previous state or when you
@@ -392,7 +516,7 @@ function todoReducer(state: Todo[], action: Action): Todo[] {
             </ul>
             <pre style={{ marginTop: 'var(--space-3)' }}>
               <code>{`const [count, setCount] = useState(0);
-setCount(count + 1);`}</code>
+setCount(c => c + 1);`}</code>
             </pre>
           </div>
 

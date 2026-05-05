@@ -1,14 +1,55 @@
 import { useState } from 'react'
 import { LessonLayout } from '@components/lesson-layout'
-import type { PlaygroundConfig } from '@components/playground'
+import type { PlaygroundVariant } from '@components/playground'
 import sourceCode from './StateBasics.tsx?raw'
 
-export const playgroundConfig: PlaygroundConfig = {
-    files: [
-        {
-            name: 'App.tsx',
-            language: 'tsx',
-            code: `import { useState } from 'react'
+export const playgroundVariants: PlaygroundVariant[] = [
+    {
+        id: 'broken',
+        label: 'Before — plain variable',
+        description:
+            "Click the buttons. The variable changes, but the screen doesn't update — React only re-renders when state changes, and a plain let isn't state.",
+        files: [
+            {
+                name: 'App.tsx',
+                language: 'tsx',
+                code: `export default function App() {
+    let count = 0
+
+    function increment() {
+        count = count + 1
+        console.log('count is now', count)
+    }
+
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>Counter: {count}</h2>
+            <p style={{ fontSize: 12, color: 'var(--pg-muted)' }}>
+                Open the console — the variable updates, but the UI doesn't.
+            </p>
+            <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={increment}>+</button>
+                <button onClick={() => { count = 0 }}>Reset</button>
+            </div>
+        </div>
+    )
+}
+`,
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 320,
+    },
+    {
+        id: 'fixed',
+        label: 'After — useState',
+        description:
+            'useState returns a value plus a setter. Calling the setter tells React the value changed, which schedules a re-render.',
+        files: [
+            {
+                name: 'App.tsx',
+                language: 'tsx',
+                code: `import { useState } from 'react'
 
 export default function App() {
     const [count, setCount] = useState(0)
@@ -35,11 +76,12 @@ export default function App() {
     )
 }
 `,
-        },
-    ],
-    entryFile: 'App.tsx',
-    height: 350,
-}
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 350,
+    },
+]
 
 export default function StateBasics() {
     const [count, setCount] = useState(0)
@@ -47,7 +89,7 @@ export default function StateBasics() {
     const [isVisible, setIsVisible] = useState(true)
 
     return (
-        <LessonLayout title="State Basics" playgroundConfig={playgroundConfig} sourceCode={sourceCode}>
+        <LessonLayout title="State Basics" playgroundVariants={playgroundVariants} sourceCode={sourceCode}>
             <div>
             <p>
                 State lets components "remember" information and respond to user interactions. The{' '}
@@ -76,7 +118,7 @@ export default function StateBasics() {
                     </div>
                     <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
                         <button
-                            onClick={() => setCount(count + 1)}
+                            onClick={() => setCount(c => c + 1)}
                             style={{
                                 padding: 'var(--space-3) var(--space-6)',
                                 background: 'var(--color-primary-500)',
@@ -90,7 +132,7 @@ export default function StateBasics() {
                             Increment
                         </button>
                         <button
-                            onClick={() => setCount(count - 1)}
+                            onClick={() => setCount(c => c - 1)}
                             style={{
                                 padding: 'var(--space-3) var(--space-6)',
                                 background: 'var(--color-accent-500)',
@@ -124,7 +166,7 @@ export default function StateBasics() {
 const [count, setCount] = useState(0);
 
 // Update state by calling the setter
-<button onClick={() => setCount(count + 1)}>
+<button onClick={() => setCount(c => c + 1)}>
   Increment
 </button>`}</code>
                     </pre>

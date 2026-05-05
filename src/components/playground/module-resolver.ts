@@ -102,12 +102,32 @@ export function buildIframeDoc(jsBundle: string, cssCode: string): string {
 <meta name="color-scheme" content="light">
 <style>
 *,*::before,*::after{box-sizing:border-box}
+:root{
+  --pg-card:#fafafa;
+  --pg-card-border:#ddd;
+  --pg-card-text:#1f2937;
+  --pg-muted:#6b7280;
+  --pg-input-bg:#fff;
+  --pg-input-border:#d1d5db;
+}
 body{margin:0;padding:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:#1a1a2e;background:#fff;color-scheme:light}
 pre{background:#f3f4f6;color:#1f2937;padding:12px;border-radius:6px;overflow-x:auto;margin-bottom:8px;font-size:13px}
 code{font-size:13px}
-body.dark{color:#e2e8f0;background:#1a1a2e;color-scheme:dark}
+input,textarea,select{color-scheme:inherit}
+body.dark{
+  color:#e2e8f0;
+  background:#1a1a2e;
+  color-scheme:dark;
+  --pg-card:#1f2937;
+  --pg-card-border:#374151;
+  --pg-card-text:#e2e8f0;
+  --pg-muted:#9ca3af;
+  --pg-input-bg:#0f172a;
+  --pg-input-border:#374151;
+}
 body.dark pre{background:#1e293b;color:#e2e8f0}
 body.dark code{color:#e2e8f0}
+body.dark input,body.dark textarea,body.dark select{background:var(--pg-input-bg);color:var(--pg-card-text);border-color:var(--pg-input-border)}
 ${cssCode}
 </style>
 </head>
@@ -120,6 +140,61 @@ else{document.body.classList.remove('dark');document.querySelector('meta[name=co
 }
 __applyTheme(window.parent.document.documentElement.dataset.theme==='dark');
 new MutationObserver(function(){__applyTheme(window.parent.document.documentElement.dataset.theme==='dark')}).observe(window.parent.document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+// Console capture: proxy log/info/warn/error/debug to parent window
+(function(){
+    function serialize(value, seen, depth){
+        seen = seen || [];
+        depth = depth || 0;
+        if (depth > 4) return '[…]';
+        if (value === null) return 'null';
+        if (value === undefined) return 'undefined';
+        var t = typeof value;
+        if (t === 'string') return value;
+        if (t === 'number' || t === 'boolean' || t === 'bigint') return String(value);
+        if (t === 'symbol') return value.toString();
+        if (t === 'function') return '[Function' + (value.name ? ': ' + value.name : '') + ']';
+        if (value instanceof Error) return value.name + ': ' + value.message;
+        if (typeof Element !== 'undefined' && value instanceof Element) {
+            return '<' + value.tagName.toLowerCase() + (value.id ? ' id="' + value.id + '"' : '') + '>';
+        }
+        if (seen.indexOf(value) !== -1) return '[Circular]';
+        seen = seen.concat([value]);
+        if (Array.isArray(value)) {
+            var items = value.slice(0, 50).map(function(v){ return serialize(v, seen, depth + 1); });
+            return '[' + items.join(', ') + (value.length > 50 ? ', …' : '') + ']';
+        }
+        if (t === 'object') {
+            try {
+                var keys = Object.keys(value).slice(0, 30);
+                var pairs = keys.map(function(k){
+                    return k + ': ' + serialize(value[k], seen, depth + 1);
+                });
+                return '{ ' + pairs.join(', ') + (Object.keys(value).length > 30 ? ', …' : '') + ' }';
+            } catch (e) {
+                return '[Object]';
+            }
+        }
+        return String(value);
+    }
+    var __orig = {};
+    ['log','info','warn','error','debug'].forEach(function(method){
+        __orig[method] = console[method] ? console[method].bind(console) : function(){};
+        console[method] = function(){
+            var args = Array.prototype.slice.call(arguments);
+            try {
+                window.parent.postMessage({
+                    type: 'PLAYGROUND_CONSOLE',
+                    method: method,
+                    args: args.map(function(a){ return serialize(a); }),
+                    timestamp: Date.now()
+                }, '*');
+            } catch(e) {}
+            __orig[method].apply(null, args);
+        };
+    });
+})();
+
 window.onerror = function(msg, source, line, col, error) {
     window.parent.postMessage({
         type: 'PLAYGROUND_RUNTIME_ERROR',

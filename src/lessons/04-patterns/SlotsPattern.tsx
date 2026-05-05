@@ -1,13 +1,93 @@
 import { useState, ReactNode } from 'react'
 import { LessonLayout } from '@components/lesson-layout'
-import type { PlaygroundConfig } from '@components/playground'
-// @ts-ignore
+import type { PlaygroundVariant } from '@components/playground'
 import sourceCode from './SlotsPattern.tsx?raw'
 
-export const playgroundConfig: PlaygroundConfig = {
-    files: [
-        {
-            name: 'App.tsx',
+export const playgroundVariants: PlaygroundVariant[] = [
+    {
+        id: 'children-blob',
+        label: 'Before — children as blob',
+        description:
+            "Card takes children and renders them in one slot. The consumer can't customize structure (e.g. 'header on the right, body left') — every Card looks the same. Adding a footer means a new prop, then another, then another.",
+        files: [
+            {
+                name: 'App.tsx',
+                language: 'tsx',
+                code: `import { ReactNode } from 'react'
+
+function Card({ children }: { children: ReactNode }) {
+    return (
+        <div style={{ padding: 16, border: '1px solid var(--pg-card-border)', borderRadius: 8, background: 'var(--pg-card)', color: 'var(--pg-card-text)' }}>
+            {children}
+        </div>
+    )
+}
+
+export default function App() {
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>One slot, no structure</h2>
+            <Card>
+                <h3 style={{ marginTop: 0 }}>Title</h3>
+                <p>Body text. The card has no idea which part is the header vs body vs footer — just a blob.</p>
+                <button>Action</button>
+            </Card>
+        </div>
+    )
+}
+`,
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 280,
+    },
+    {
+        id: 'named-slots',
+        label: 'After — named slots',
+        description:
+            "Expose header, body, and footer as separate ReactNode props. Card now controls layout (e.g. footer pinned to the bottom) but consumers still own each region's content.",
+        files: [
+            {
+                name: 'App.tsx',
+                language: 'tsx',
+                code: `import { ReactNode } from 'react'
+
+function Card({ header, footer, children }: { header?: ReactNode; footer?: ReactNode; children: ReactNode }) {
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--pg-card-border)', borderRadius: 8, background: 'var(--pg-card)', color: 'var(--pg-card-text)', overflow: 'hidden' }}>
+            {header && <div style={{ padding: 12, borderBottom: '1px solid var(--pg-card-border)' }}>{header}</div>}
+            <div style={{ padding: 16, flex: 1 }}>{children}</div>
+            {footer && <div style={{ padding: 12, borderTop: '1px solid var(--pg-card-border)', background: 'rgba(127,127,127,0.05)' }}>{footer}</div>}
+        </div>
+    )
+}
+
+export default function App() {
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>Three named slots</h2>
+            <Card
+                header={<strong>User profile</strong>}
+                footer={<button>Save changes</button>}
+            >
+                <p>Card body. Each region is its own slot — Card handles the layout, consumers fill in content.</p>
+            </Card>
+        </div>
+    )
+}
+`,
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 320,
+    },
+    {
+        id: 'rich',
+        label: 'Original demo',
+        description: "The kata's original Card playground.",
+        files: [
+            {
+                name: 'App.tsx',
             language: 'tsx',
             code: `import { useState, ReactNode } from 'react'
 
@@ -22,7 +102,7 @@ interface CardProps {
 function Card({ header, body, footer }: CardProps) {
     return (
         <div style={{
-            border: '1px solid #ddd',
+            border: '1px solid var(--pg-card-border)',
             borderRadius: 12,
             overflow: 'hidden',
             fontFamily: 'sans-serif',
@@ -31,7 +111,7 @@ function Card({ header, body, footer }: CardProps) {
                 <div style={{
                     padding: '16px 20px',
                     background: '#f0f4ff',
-                    borderBottom: '1px solid #ddd',
+                    borderBottom: '1px solid var(--pg-card-border)',
                     fontWeight: 600,
                     fontSize: 16,
                 }}>
@@ -46,7 +126,7 @@ function Card({ header, body, footer }: CardProps) {
             {footer && (
                 <div style={{
                     padding: '12px 20px',
-                    background: '#fafafa',
+                    background: 'var(--pg-card)',
                     borderTop: '1px solid #ddd',
                     display: 'flex',
                     justifyContent: 'flex-end',
@@ -136,7 +216,7 @@ export default function App() {
                 body={
                     <div>
                         <p style={{ margin: '0 0 8px' }}><strong>Jane Doe</strong></p>
-                        <p style={{ margin: 0, color: '#666' }}>Software Engineer at Acme Corp</p>
+                        <p style={{ margin: 0, color: 'var(--pg-muted)' }}>Software Engineer at Acme Corp</p>
                     </div>
                 }
                 footer={cardVariant === 'full' ? (
@@ -159,8 +239,8 @@ export default function App() {
                 sidebar={
                     <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                         <li style={{ padding: '8px 0', fontWeight: 600 }}>Dashboard</li>
-                        <li style={{ padding: '8px 0', color: '#666' }}>Settings</li>
-                        <li style={{ padding: '8px 0', color: '#666' }}>Profile</li>
+                        <li style={{ padding: '8px 0', color: 'var(--pg-muted)' }}>Settings</li>
+                        <li style={{ padding: '8px 0', color: 'var(--pg-muted)' }}>Profile</li>
                     </ul>
                 }
                 content={
@@ -174,11 +254,12 @@ export default function App() {
     )
 }
 `,
-        },
-    ],
-    entryFile: 'App.tsx',
-    height: 500,
-}
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 500,
+    },
+]
 
 // --- Slot-based Card Component for lesson demo ---
 
@@ -237,7 +318,7 @@ export default function SlotsPattern() {
     const [showFooter, setShowFooter] = useState(true)
 
     return (
-        <LessonLayout title="Slots Pattern" playgroundConfig={playgroundConfig} sourceCode={sourceCode}>
+        <LessonLayout title="Slots Pattern" playgroundVariants={playgroundVariants} sourceCode={sourceCode}>
             <div>
             <p>
                 The Slots pattern gives a component multiple named insertion points for content. Instead

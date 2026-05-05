@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useRef, useCallback, useSyncExternalStore, memo, useMemo, type ReactNode, type Dispatch, type SetStateAction } from 'react'
 import { LessonLayout } from '@components/lesson-layout'
-import type { PlaygroundConfig } from '@components/playground'
-// @ts-ignore
+import type { PlaygroundVariant } from '@components/playground'
 import sourceCode from './ContextSelectors.tsx?raw'
 
 // ============================================================
@@ -98,7 +97,6 @@ function shallowEqual<T>(a: T, b: T): boolean {
 // Part 3: Context-based store (for DI / component tree scoping)
 // ============================================================
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createStoreContext<T>(initialState: T) {
     const store = createStore(initialState)
     const StoreContext = createContext(store)
@@ -131,12 +129,161 @@ void createStoreContext
 // Playground config
 // ============================================================
 
-export const playgroundConfig: PlaygroundConfig = {
-    files: [
-        {
-            name: 'App.tsx',
-            language: 'tsx',
-            code: `import { useRef, useCallback, useMemo, useSyncExternalStore, createContext, useContext } from 'react'
+export const playgroundVariants: PlaygroundVariant[] = [
+    {
+        id: 'every-re-render',
+        label: 'Before — plain Context (every consumer re-renders)',
+        description:
+            "All three consumers read from one context. Update the count: every consumer re-renders, even the one that only needs the user name. Watch the render counters climb in lockstep.",
+        files: [
+            {
+                name: 'App.tsx',
+                language: 'tsx',
+                code: `import { createContext, useContext, useState, useRef, ReactNode } from 'react'
+
+interface State { user: string; count: number; theme: string }
+const StoreCtx = createContext<{ state: State; set: (next: State) => void } | null>(null)
+
+function Provider({ children }: { children: ReactNode }) {
+    const [state, set] = useState<State>({ user: 'Ada', count: 0, theme: 'light' })
+    return <StoreCtx.Provider value={{ state, set }}>{children}</StoreCtx.Provider>
+}
+
+function useStore() {
+    const ctx = useContext(StoreCtx)
+    if (!ctx) throw new Error('inside Provider')
+    return ctx
+}
+
+function UserBadge() {
+    const { state } = useStore()
+    const r = useRef(0); r.current += 1
+    return <div>User: {state.user} · renders: {r.current}</div>
+}
+function CountBadge() {
+    const { state, set } = useStore()
+    const r = useRef(0); r.current += 1
+    return (
+        <div>
+            Count: {state.count} · renders: {r.current}
+            <button onClick={() => set({ ...state, count: state.count + 1 })} style={{ marginLeft: 8 }}>+1</button>
+        </div>
+    )
+}
+function ThemeBadge() {
+    const { state } = useStore()
+    const r = useRef(0); r.current += 1
+    return <div>Theme: {state.theme} · renders: {r.current}</div>
+}
+
+export default function App() {
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>One context, all consumers re-render</h2>
+            <Provider>
+                <UserBadge />
+                <CountBadge />
+                <ThemeBadge />
+            </Provider>
+        </div>
+    )
+}
+`,
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 320,
+    },
+    {
+        id: 'selectors',
+        label: 'After — useContextSelector',
+        description:
+            "Subscribe consumers to slices of state via useSyncExternalStore. Bumping count only re-renders the count consumer; user and theme stay flat.",
+        files: [
+            {
+                name: 'App.tsx',
+                language: 'tsx',
+                code: `import { createContext, useContext, useRef, useSyncExternalStore, useCallback, ReactNode } from 'react'
+
+interface State { user: string; count: number; theme: string }
+
+function createStore(initial: State) {
+    let state = initial
+    const listeners = new Set<() => void>()
+    return {
+        get: () => state,
+        set: (patch: Partial<State>) => {
+            state = { ...state, ...patch }
+            listeners.forEach(l => l())
+        },
+        subscribe: (l: () => void) => { listeners.add(l); return () => { listeners.delete(l) } },
+    }
+}
+type Store = ReturnType<typeof createStore>
+const StoreCtx = createContext<Store | null>(null)
+
+function Provider({ children }: { children: ReactNode }) {
+    const store = useRef(createStore({ user: 'Ada', count: 0, theme: 'light' })).current
+    return <StoreCtx.Provider value={store}>{children}</StoreCtx.Provider>
+}
+
+function useSelector<T>(selector: (s: State) => T): T {
+    const store = useContext(StoreCtx)!
+    const subscribe = useCallback((cb: () => void) => store.subscribe(cb), [store])
+    return useSyncExternalStore(subscribe, () => selector(store.get()))
+}
+
+function useStoreSet() { return useContext(StoreCtx)!.set }
+
+function UserBadge() {
+    const user = useSelector(s => s.user)
+    const r = useRef(0); r.current += 1
+    return <div>User: {user} · renders: {r.current}</div>
+}
+function CountBadge() {
+    const count = useSelector(s => s.count)
+    const set = useStoreSet()
+    const r = useRef(0); r.current += 1
+    return (
+        <div>
+            Count: {count} · renders: {r.current}
+            <button onClick={() => set({ count: count + 1 })} style={{ marginLeft: 8 }}>+1</button>
+        </div>
+    )
+}
+function ThemeBadge() {
+    const theme = useSelector(s => s.theme)
+    const r = useRef(0); r.current += 1
+    return <div>Theme: {theme} · renders: {r.current}</div>
+}
+
+export default function App() {
+    return (
+        <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
+            <h2>Selectors — only relevant consumers re-render</h2>
+            <Provider>
+                <UserBadge />
+                <CountBadge />
+                <ThemeBadge />
+            </Provider>
+        </div>
+    )
+}
+`,
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 320,
+    },
+    {
+        id: 'rich',
+        label: 'Production-grade selectors',
+        description: "The kata's full useContextSelector implementation with todos.",
+        files: [
+            {
+                name: 'App.tsx',
+                language: 'tsx',
+                code: `import { useRef, useCallback, useMemo, useSyncExternalStore, createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
 
 // --- Production-grade external store ---
@@ -269,7 +416,7 @@ function Stats() {
     return (
         <div style={{ padding: 8, background: '#dbeafe', borderRadius: 6, marginBottom: 8, fontSize: 13 }}>
             <strong>Stats</strong>: {stats.done}/{stats.total} done
-            <span style={{ marginLeft: 8, color: '#666', fontSize: 11 }}>renders: {renders.current}</span>
+            <span style={{ marginLeft: 8, color: 'var(--pg-muted)', fontSize: 11 }}>renders: {renders.current}</span>
         </div>
     )
 }
@@ -284,9 +431,9 @@ function SearchBar() {
                 value={search}
                 onChange={(e) => dispatch((s) => ({ ...s, search: e.target.value }))}
                 placeholder="Search todos..."
-                style={{ flex: 1, padding: '6px 10px', borderRadius: 4, border: '1px solid #ccc' }}
+                style={{ flex: 1, padding: '6px 10px', borderRadius: 4, border: '1px solid var(--pg-card-border)' }}
             />
-            <span style={{ color: '#666', fontSize: 11 }}>renders: {renders.current}</span>
+            <span style={{ color: 'var(--pg-muted)', fontSize: 11 }}>renders: {renders.current}</span>
         </div>
     )
 }
@@ -307,7 +454,7 @@ function FilterBar() {
     return (
         <div style={{ display: 'flex', gap: 4, marginBottom: 8, alignItems: 'center' }}>
             {btn('all', 'All')} {btn('active', 'Active')} {btn('done', 'Done')}
-            <span style={{ marginLeft: 'auto', color: '#666', fontSize: 11 }}>renders: {renders.current}</span>
+            <span style={{ marginLeft: 'auto', color: 'var(--pg-muted)', fontSize: 11 }}>renders: {renders.current}</span>
         </div>
     )
 }
@@ -318,10 +465,10 @@ function TodoList() {
     const renders = useRef(0); renders.current++
     return (
         <div>
-            <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>
+            <div style={{ fontSize: 11, color: 'var(--pg-muted)', marginBottom: 4 }}>
                 Showing {todos.length} items (list renders: {renders.current})
             </div>
-            <div style={{ maxHeight: 250, overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: 6 }}>
+            <div style={{ maxHeight: 250, overflowY: 'auto', border: '1px solid var(--pg-card-border)', borderRadius: 6 }}>
                 {todos.slice(0, 30).map((t) => (
                     <div key={t.id} style={{
                         padding: '6px 10px', borderBottom: '1px solid #f1f5f9', display: 'flex',
@@ -348,7 +495,7 @@ export default function App() {
         <Provider>
             <div style={{ padding: 16, fontFamily: 'sans-serif' }}>
                 <h3 style={{ marginBottom: 8 }}>100-Item Todo App with Selectors</h3>
-                <p style={{ fontSize: 13, color: '#666', marginBottom: 12 }}>
+                <p style={{ fontSize: 13, color: 'var(--pg-muted)', marginBottom: 12 }}>
                     Each component only re-renders when its selected slice changes.
                     Watch the render counts!
                 </p>
@@ -361,11 +508,12 @@ export default function App() {
     )
 }
 `,
-        },
-    ],
-    entryFile: 'App.tsx',
-    height: 550,
-}
+            },
+        ],
+        entryFile: 'App.tsx',
+        height: 550,
+    },
+]
 
 // ============================================================
 // Demo state for inline examples
@@ -586,7 +734,7 @@ function ShallowEqualDemo() {
 
 export default function ContextSelectors() {
     return (
-        <LessonLayout title="Context Selectors" playgroundConfig={playgroundConfig} sourceCode={sourceCode}>
+        <LessonLayout title="Context Selectors" playgroundVariants={playgroundVariants} sourceCode={sourceCode}>
             <div>
                 <p>
                     React Context re-renders <em>every</em> consumer when the context value changes — even if a component

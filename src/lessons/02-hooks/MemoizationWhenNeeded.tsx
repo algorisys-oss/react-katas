@@ -1,7 +1,6 @@
-import { useState, useMemo, useCallback, memo } from 'react'
+import { useState, useMemo, useCallback, memo, useRef } from 'react'
 import { LessonLayout } from '@components/lesson-layout'
 import type { PlaygroundConfig } from '@components/playground'
-// @ts-ignore
 import sourceCode from './MemoizationWhenNeeded.tsx?raw'
 
 export const playgroundConfig: PlaygroundConfig = {
@@ -15,7 +14,7 @@ export const playgroundConfig: PlaygroundConfig = {
 function expensiveCalculation(num: number): number {
   console.log('Computing expensive result...')
   let result = 0
-  for (let i = 0; i < 50000000; i++) {
+  for (let i = 0; i < 3_000_000; i++) {
     result += num
   }
   return result
@@ -57,7 +56,7 @@ export default function App() {
       <h2>useMemo - Expensive Calculation</h2>
       <p>Count: <strong>{count}</strong></p>
       <p>Expensive Result: <strong>{expensiveResult}</strong></p>
-      <p style={{ fontSize: 12, color: '#888' }}>
+      <p style={{ fontSize: 12, color: 'var(--pg-muted)' }}>
         Check the console - computation only runs when count changes, not when you type.
       </p>
 
@@ -65,13 +64,13 @@ export default function App() {
         value={text}
         onChange={e => setText(e.target.value)}
         placeholder="Type here (no recomputation)..."
-        style={{ padding: 8, fontSize: 14, width: '100%', marginBottom: 16, border: '1px solid #ccc', borderRadius: 4 }}
+        style={{ padding: 8, fontSize: 14, width: '100%', marginBottom: 16, border: '1px solid var(--pg-card-border)', borderRadius: 4 }}
       />
 
       <hr style={{ margin: '20px 0' }} />
 
       <h2>useCallback - Stable References</h2>
-      <p style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
+      <p style={{ fontSize: 12, color: 'var(--pg-muted)', marginBottom: 8 }}>
         Check the console - MemoizedButton only renders when its props change.
       </p>
       <MemoizedButton onClick={handleIncrement} label="Increment" />
@@ -192,7 +191,7 @@ export default function MemoizationWhenNeeded() {
   return (
     <>
       <p>Result: {result}</p>
-      <button onClick={() => setCount(count + 1)}>Increment</button>
+      <button onClick={() => setCount(c => c + 1)}>Increment</button>
       <input value={input} onChange={(e) => setInput(e.target.value)} />
     </>
   );
@@ -226,7 +225,7 @@ export default function MemoizationWhenNeeded() {
   const [text, setText] = useState('');
 
   // Without useCallback: new function on every render
-  // const handleClick = () => setCount(count + 1);
+  // const handleClick = () => setCount(c => c + 1);
 
   // With useCallback: same function reference
   const handleClick = useCallback(() => {
@@ -290,7 +289,7 @@ function Parent() {
 
   return (
     <>
-      <button onClick={() => setOther(other + 1)}>
+      <button onClick={() => setOther(o => o + 1)}>
         Update Other
       </button>
       <ExpensiveChild value={count} />
@@ -401,18 +400,21 @@ function Parent() {
 function ExpensiveCalculation() {
   const [count, setCount] = useState(0)
   const [input, setInput] = useState('')
-  const [renderCount, setRenderCount] = useState(0)
+  const renderCount = useRef(0)
+  renderCount.current += 1
 
-  // Simulate expensive operation
+  // Simulate expensive operation. ~3M iterations is perceptibly slow
+  // without freezing the browser.
   const expensiveOperation = (num: number) => {
     let result = 0
-    for (let i = 0; i < 100000000; i++) {
+    for (let i = 0; i < 3_000_000; i++) {
       result += num
     }
     return result
   }
 
-  // Memoized expensive calculation
+  // Memoized: only recompute when count changes — typing in the input
+  // triggers re-renders but reuses the cached result.
   const result = useMemo(() => {
     console.log('Computing expensive result...')
     return expensiveOperation(count)
@@ -433,15 +435,12 @@ function ExpensiveCalculation() {
         <strong>Expensive Result:</strong> {result}
       </p>
       <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
-        Renders: {renderCount} (Check console for computation logs)
+        Renders: {renderCount.current} · check console for computation logs
       </p>
 
       <div style={{ display: 'flex', gap: 'var(--space-2)', marginTop: 'var(--space-3)' }}>
         <button
-          onClick={() => {
-            setCount(count + 1)
-            setRenderCount(renderCount + 1)
-          }}
+          onClick={() => setCount((c) => c + 1)}
           style={{
             padding: 'var(--space-2) var(--space-4)',
             background: 'var(--color-primary-500)',
@@ -458,10 +457,7 @@ function ExpensiveCalculation() {
       <input
         type="text"
         value={input}
-        onChange={(e) => {
-          setInput(e.target.value)
-          setRenderCount(renderCount + 1)
-        }}
+        onChange={(e) => setInput(e.target.value)}
         placeholder="Type here (doesn't trigger calculation)"
         style={{
           width: '100%',
@@ -561,7 +557,7 @@ function MemoDemo() {
 
       <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
         <button
-          onClick={() => setCount(count + 1)}
+          onClick={() => setCount((c) => c + 1)}
           style={{
             padding: 'var(--space-2) var(--space-4)',
             background: 'var(--color-primary-500)',
@@ -574,7 +570,7 @@ function MemoDemo() {
           Update Count (child re-renders)
         </button>
         <button
-          onClick={() => setOther(other + 1)}
+          onClick={() => setOther((o) => o + 1)}
           style={{
             padding: 'var(--space-2) var(--space-4)',
             background: 'var(--color-gray-500)',

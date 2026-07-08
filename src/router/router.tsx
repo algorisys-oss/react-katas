@@ -45,9 +45,27 @@ export function RouterProvider({ children }: RouterProviderProps) {
     }, [])
 
     const navigate = (path: string) => {
+        const currentSearch = window.location.search;
+        let targetPath = path;
+        if (currentSearch) {
+            const currentParams = new URLSearchParams(currentSearch);
+            const pathParts = path.split('?');
+            const targetParams = new URLSearchParams(pathParts[1] || '');
+            
+            // Forward all se_ parameters
+            currentParams.forEach((value, key) => {
+                if (key.startsWith('se_')) {
+                    targetParams.set(key, value);
+                }
+            });
+            
+            const queryString = targetParams.toString();
+            targetPath = pathParts[0] + (queryString ? '?' + queryString : '');
+        }
+
         // Update browser history
-        window.history.pushState({}, '', path)
-        setCurrentPath(path)
+        window.history.pushState({}, '', targetPath)
+        setCurrentPath(targetPath)
         window.scrollTo(0, 0)
     }
 

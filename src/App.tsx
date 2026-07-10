@@ -96,7 +96,7 @@ function useSidebarCollapse() {
 }
 
 function AppContent() {
-    const { currentPath } = useRouter()
+    const { currentPath, navigate } = useRouter()
     const { completedLessons, toggleLessonCompletion, isLessonCompleted } = useProgress()
     const { collapsed, toggle: toggleSidebar } = useSidebarCollapse()
 
@@ -105,6 +105,26 @@ function AppContent() {
         const [p, q = ''] = currentPath.split('?')
         return [p, q]
     }, [currentPath])
+
+    // SkillzEngine iframe deep linking: navigate to the selected kata if specified in URL
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const seKata = urlParams.get("se_kata");
+        if (seKata) {
+            const targetPath = `/lessons/${seKata}`;
+            
+            // Clean urlParams for future navigation
+            urlParams.delete("se_kata");
+            const newSearch = urlParams.toString();
+            const targetSearch = newSearch ? `?${newSearch}` : "";
+            
+            // Navigate to the deep-linked path with the cleaned search params
+            navigate(targetPath + targetSearch);
+            
+            // Update browser URL immediately to remove se_kata
+            window.history.replaceState({}, "", targetPath + targetSearch);
+        }
+    }, []);
 
     const activeTierId = useMemo(() => {
         return new URLSearchParams(queryString).get('tier') ?? undefined
@@ -222,6 +242,8 @@ function AppContent() {
 
     const MIN_TIME_SECONDS = 30 // 30 seconds reading time requirement
     const canComplete = isLessonCompleted(currentLesson.id) || ((hasScrolledToBottom || isShortContent) && timeSpent >= MIN_TIME_SECONDS)
+    // const MIN_TIME_SECONDS = 0
+    // const canComplete = true // Always clickable for testing and instant completion
 
     // Render the lesson component
     const LessonComponent = currentLesson.component

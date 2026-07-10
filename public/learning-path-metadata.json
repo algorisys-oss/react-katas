@@ -1,0 +1,132 @@
+{
+  "name": "React Developer Path",
+  "description": "Curated learning roadmap to master modern React concepts from Fundamentals to Advanced State and Performance.",
+  "role": "react-dev",
+  "tech_stack": [
+    "React",
+    "JavaScript",
+    "Frontend"
+  ],
+  "kata_app_url": "http://localhost:3002",
+  "is_active": true,
+  "phases": [
+    {
+      "id": "phase-fundamentals",
+      "name": "Phase 1: React Fundamentals",
+      "description": "Master JSX, component building blocks, props, events, and state basics.",
+      "kata_ids": [
+        "jsx-basics",
+        "element-vs-component",
+        "components-props",
+        "state-basics",
+        "event-handling",
+        "conditional-rendering"
+      ],
+      "passing_score": 60,
+      "order": 1
+    },
+    {
+      "id": "phase-hooks",
+      "name": "Phase 2: Hooks & Side Effects",
+      "description": "Learn lifecycle side effects with useEffect, DOM interactions with useRef, and custom hooks.",
+      "kata_ids": [
+        "useeffect-fundamentals",
+        "useeffect-cleanup",
+        "useref",
+        "custom-hooks",
+        "usereducer",
+        "memoization-when-needed",
+        "behavioral-hooks"
+      ],
+      "passing_score": 60,
+      "order": 2
+    },
+    {
+      "id": "phase-performance",
+      "name": "Phase 3: Performance Optimization",
+      "description": "Optimizing React render cycles, reconciliation, and virtualization.",
+      "kata_ids": [
+        "render-timing-reconciliation",
+        "component-composition",
+        "react-memo",
+        "code-splitting",
+        "provider-pattern",
+        "profiling-debugging",
+        "react-19-compiler",
+        "virtualization"
+      ],
+      "passing_score": 60,
+      "order": 3
+    },
+    {
+      "id": "phase-advanced",
+      "name": "Phase 4: Advanced Patterns",
+      "description": "Compound components, render props, higher-order components, and portals.",
+      "kata_ids": [
+        "compound-components",
+        "compound-components-tabs",
+        "render-props",
+        "higher-order-components",
+        "controlled-uncontrolled",
+        "portal-pattern",
+        "as-child-pattern",
+        "children-as-data",
+        "slots-pattern"
+      ],
+      "passing_score": 60,
+      "order": 4
+    },
+    {
+      "id": "phase-state",
+      "name": "Phase 5: State Management",
+      "description": "Advanced Context API, custom selectors, state machines, and global state without external packages.",
+      "kata_ids": [
+        "context-deep-dive",
+        "context-selectors",
+        "state-machines",
+        "global-state-patterns"
+      ],
+      "passing_score": 60,
+      "order": 5
+    },
+    {
+      "id": "phase-accessibility",
+      "name": "Phase 6: Accessibility & Production",
+      "description": "Focus on ARIA, keyboard navigation, accessible forms, and automated testing.",
+      "kata_ids": [
+        "aria-fundamentals",
+        "keyboard-navigation",
+        "accessible-forms",
+        "testing-accessibility"
+      ],
+      "passing_score": 60,
+      "order": 6
+    },
+    {
+      "id": "phase-machine-coding",
+      "name": "Phase 7: Machine Coding Challenges",
+      "description": "Build robust components like File Tree, Typeahead, Toasts, Drag & Drop, and Infinite Scroll.",
+      "kata_ids": [
+        "file-explorer",
+        "auto-complete",
+        "toast-system",
+        "drag-and-drop",
+        "infinite-scroll"
+      ],
+      "passing_score": 60,
+      "order": 7
+    },
+    {
+      "id": "phase-architecture",
+      "name": "Phase 8: Architecture & Leadership",
+      "description": "Code modernization, scale design systems, performance budgets, and organizational alignment.",
+      "kata_ids": [
+        "migrating-legacy-react",
+        "design-system-governance",
+        "performance-budgets"
+      ],
+      "passing_score": 60,
+      "order": 8
+    }
+  ]
+}

@@ -240,10 +240,10 @@ function AppContent() {
         )
     }
 
-    // const MIN_TIME_SECONDS = 30 // 30 seconds reading time requirement
-    // const canComplete = isLessonCompleted(currentLesson.id) || ((hasScrolledToBottom || isShortContent) && timeSpent >= MIN_TIME_SECONDS)
-    const MIN_TIME_SECONDS = 0
-    const canComplete = true // Always clickable for testing and instant completion
+    const MIN_TIME_SECONDS = 30 // 30 seconds reading time requirement
+    const canComplete = isLessonCompleted(currentLesson.id) || ((hasScrolledToBottom || isShortContent) && timeSpent >= MIN_TIME_SECONDS)
+    // const MIN_TIME_SECONDS = 0
+    // const canComplete = true // Always clickable for testing and instant completion
 
     // Render the lesson component
     const LessonComponent = currentLesson.component
